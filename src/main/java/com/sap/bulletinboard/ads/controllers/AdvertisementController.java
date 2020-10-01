@@ -29,11 +29,11 @@ import com.sap.bulletinboard.ads.models.Advertisement;
 @RequestMapping(AdvertisementController.PATH) 
 public class AdvertisementController {
     public static final String PATH = "/api/v1/ads";
-    private final Map<Long, Advertisement> ads = new HashMap<>(); //temporary data storage, key represents the ID
+    private static final Map<Long, Advertisement> ads = new HashMap<>(); //temporary data storage, key represents the ID
     
     @GetMapping
     public Iterable<Advertisement> advertisements() {
-        return this.ads.values(); 
+        return AdvertisementController.ads.values(); 
         
     }
 

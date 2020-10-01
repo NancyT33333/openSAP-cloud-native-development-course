@@ -16,3 +16,7 @@ node_modules
 *.iws
 *.iml
 *.ipr
+.classpath
+.settings/org.eclipse.jdt.core.prefs
+.settings/org.eclipse.wst.common.component
+src/main/webapp/META-INF/MANIFEST.MF

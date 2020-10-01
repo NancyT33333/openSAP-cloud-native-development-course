@@ -1,6 +1,7 @@
 package com.sap.bulletinboard.ads.controllers;
 
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
 import static org.springframework.http.MediaType.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -29,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sap.bulletinboard.ads.config.WebAppContextConfig;
 import com.sap.bulletinboard.ads.models.Advertisement;
 
+import junit.framework.Assert;
 import net.minidev.json.JSONObject;
 import com.sap.bulletinboard.ads.models.Advertisement;
 
@@ -68,6 +70,73 @@ public class AdvertisementControllerTest {
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8));     
       
     }
+    
+//     tests put call to unspecific address "/api/v1/ads/"
+    @Test
+    public void putToUnspecifiedPath() throws Exception {
+       
+        mockMvc.perform(buildPutRequest())
+        .andExpect(status().isMethodNotAllowed());      
+        
+    }
+    //  tests put to specific existing item path (item is updated)
+    // updated item's title equals to new one
+    @Test
+    public void putToExistingPath() throws Exception {       
+        JSONObject json = new JSONObject();
+        json.put("title", "value1");
+        
+        MvcResult postres = mockMvc.perform(post(AdvertisementController.PATH).content(toJson(json)).contentType(APPLICATION_JSON_UTF8)).andReturn();
+      
+        String newEntryLocation = postres.getResponse().getHeader("Location");
+        newEntryLocation = getIdFromLocation(newEntryLocation);
+        Advertisement advertisement = new Advertisement();
+        advertisement.setTitle("Changed Title");
+        MockHttpServletResponse postres2 = mockMvc.perform(buildPutByIdRequest(newEntryLocation, advertisement))
+                    .andExpect(status().isOk())
+                    .andReturn().getResponse();
+        
+        assertThat(new ObjectMapper().readValue(postres2.getContentAsString(), Advertisement.class).getTitle(), equalTo(advertisement.getTitle() ));
+    }
+    // tests mass delete
+  @Test
+  public void deleteAll() throws Exception {
+    JSONObject json = new JSONObject();
+    json.put("title", "value1");
+    
+        mockMvc.perform(post(AdvertisementController.PATH).content(toJson(json))
+                                    .contentType(APPLICATION_JSON_UTF8))
+                                    .andExpect(status().is2xxSuccessful());
+    
+    mockMvc.perform(buildDelete())
+    .andExpect(status().is2xxSuccessful());
+   mockMvc.perform(buildGetRequest( ))
+      .andExpect(jsonPath("$.length()", is(0)));      
+      
+  }
+  //  tests delete of specific item
+  @Test
+  public void deleteById() throws Exception {
+     mockMvc.perform(buildPostRequest("1"));
+     mockMvc.perform(buildGetByIdRequest("1"))
+     .andExpect(status().is2xxSuccessful());
+      mockMvc.perform(buildDeleteByIdRequest("1"))
+          .andExpect(status().is2xxSuccessful());   
+      mockMvc.perform(buildGetByIdRequest("1"))
+          .andExpect(status().isNotFound());
+      
+  }
+  
+  //  tests delete of non existing specific item
+  @Test
+  public void deleteByIdNonExisting() throws Exception {
+     
+    
+      mockMvc.perform(buildDeleteByIdRequest("1000"))
+          .andExpect(status().isNotFound());   
+     
+      
+  }
 
     //  tries to retrieve object with nonexisting ID using GET request to /4711
     @Test
@@ -120,6 +189,21 @@ public class AdvertisementControllerTest {
     
     private MockHttpServletRequestBuilder buildGetRequest() throws Exception {
         return get(AdvertisementController.PATH).contentType(APPLICATION_JSON_UTF8);
+    }
+    
+    private MockHttpServletRequestBuilder buildPutRequest() throws Exception {
+        return put(AdvertisementController.PATH).content("{}").contentType(APPLICATION_JSON_UTF8);
+    }
+    
+    private MockHttpServletRequestBuilder buildPutByIdRequest(String id, Advertisement ad) throws Exception {      
+        return put(AdvertisementController.PATH + "/" + id).content(toJson(ad)).contentType(APPLICATION_JSON_UTF8);
+    }
+    
+    private MockHttpServletRequestBuilder buildDeleteByIdRequest(String id) throws Exception {      
+        return delete(AdvertisementController.PATH + "/" + id);
+    }
+    private MockHttpServletRequestBuilder buildDelete() throws Exception {      
+        return delete(AdvertisementController.PATH );
     }
     
     private MockHttpServletRequestBuilder buildGetByIdRequest(String sId) throws Exception {

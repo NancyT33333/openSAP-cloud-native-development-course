@@ -1,6 +1,9 @@
 package com.sap.bulletinboard.ads.models;
 
+import org.hibernate.validator.constraints.NotBlank;
+
 public class Advertisement {
+    @NotBlank
     public String title; 
     public Advertisement (String title) {
         this.title = title;

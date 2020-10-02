@@ -71,6 +71,18 @@ public class AdvertisementControllerTest {
       
     }
     
+    //creating a new advertisement with title set to null or  ""
+    @Test
+    public void emptyTitle() throws Exception {
+        mockMvc.perform(buildPostRequest(""))
+            .andExpect(status().isBadRequest());
+
+        mockMvc.perform(buildPostRequest(null))
+            .andExpect(status().isBadRequest());
+      
+      
+    }
+    
 //     tests put call to unspecific address "/api/v1/ads/"
     @Test
     public void putToUnspecifiedPath() throws Exception {
@@ -125,6 +137,12 @@ public class AdvertisementControllerTest {
       mockMvc.perform(buildGetByIdRequest("1"))
           .andExpect(status().isNotFound());
       
+  }
+  
+  @Test
+  public void getByNegativeId() throws Exception {
+      mockMvc.perform(buildGetByIdRequest("-1"))
+      .andExpect(status().isBadRequest());
   }
   
   //  tests delete of non existing specific item

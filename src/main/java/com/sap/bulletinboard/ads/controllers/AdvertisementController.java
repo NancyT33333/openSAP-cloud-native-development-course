@@ -2,6 +2,7 @@ package com.sap.bulletinboard.ads.controllers;
 
 import org.springframework.http.MediaType; //provides constants for content types
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +21,9 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus; //enumeration for HTTP status codes
 
@@ -29,6 +33,7 @@ import com.sap.bulletinboard.ads.models.Advertisement;
 
 @RestController
 @RequestScope
+@Validated
 @RequestMapping(AdvertisementController.PATH)
 public class AdvertisementController {
     public static final String PATH = "/api/v1/ads";
@@ -42,7 +47,8 @@ public class AdvertisementController {
     }
 
     @GetMapping("/{id}")
-    public Advertisement advertisementById(@PathVariable("id") Long id) {
+    
+    public Advertisement advertisementById(@PathVariable("id") @Min(0) Long id) {
         if (!this.ads.containsKey(id)) {
             throw new NotFoundException("No ad with this id");
         }
@@ -50,7 +56,7 @@ public class AdvertisementController {
     }
 
     @PutMapping("/{id}")
-    public Advertisement advertisementPutById(@PathVariable("id") Long id, @RequestBody Advertisement body) {
+    public Advertisement advertisementPutById(@PathVariable("id") Long id, @Valid @RequestBody Advertisement body) {
 
         if (!this.ads.containsKey(id)) {
             throw new NotFoundException("No ad with this id");
@@ -83,7 +89,7 @@ public class AdvertisementController {
      *              content type.
      */
     @PostMapping
-    public ResponseEntity<Advertisement> add(@RequestBody Advertisement advertisement,
+    public ResponseEntity<Advertisement> add(@Valid @RequestBody Advertisement advertisement,
             UriComponentsBuilder uriComponentsBuilder) throws URISyntaxException {
         long lng = this.ads.size() + 1;
         UriComponents uriComponents = uriComponentsBuilder.path(PATH + "/{id}").buildAndExpand(lng);

@@ -88,6 +88,26 @@ public class AdvertisementControllerTest {
         .andExpect(status().isMethodNotAllowed());      
         
     }
+//  tests put call to with different Ids provided in url and in body
+ @Test
+ public void putWithDifferentId() throws Exception {
+   
+     MvcResult postres = mockMvc.perform(buildPostRequest("1")).andReturn();
+     
+     String newEntryLocation = getIdFromLocation(postres.getResponse().getHeader(LOCATION));
+     mockMvc.perform(buildGetByIdRequest(newEntryLocation))
+     .andExpect(status().is2xxSuccessful());
+     
+
+     Advertisement advertisement = new Advertisement();
+       advertisement.setTitle("Title");
+    
+     String wrongPath = newEntryLocation + "0" ;
+     advertisement.setId(Long.parseLong(wrongPath) );
+     mockMvc.perform(buildPutByIdRequest(newEntryLocation, advertisement))
+     .andExpect(status().isBadRequest());    
+     
+ }
     //  tests put to specific existing item path (item is updated)
     // updated item's title equals to new one
     @Test
@@ -126,12 +146,14 @@ public class AdvertisementControllerTest {
   //  tests delete of specific item
   @Test
   public void deleteById() throws Exception {
-     mockMvc.perform(buildPostRequest("1"));
-     mockMvc.perform(buildGetByIdRequest("1"))
+      MvcResult postres = mockMvc.perform(buildPostRequest("1")).andReturn();
+  
+     String newEntryLocation = getIdFromLocation(postres.getResponse().getHeader(LOCATION));
+     mockMvc.perform(buildGetByIdRequest(newEntryLocation))
      .andExpect(status().is2xxSuccessful());
-      mockMvc.perform(buildDeleteByIdRequest("1"))
-          .andExpect(status().is2xxSuccessful());   
-      mockMvc.perform(buildGetByIdRequest("1"))
+      mockMvc.perform(buildDeleteByIdRequest(newEntryLocation))
+          .andExpect(status().isNoContent());   
+      mockMvc.perform(buildGetByIdRequest(newEntryLocation))
           .andExpect(status().isNotFound());
       
   }

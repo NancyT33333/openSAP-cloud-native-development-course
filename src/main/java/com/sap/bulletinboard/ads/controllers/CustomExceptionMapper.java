@@ -59,6 +59,11 @@ public class CustomExceptionMapper extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler
+    public ResponseEntity<Object> handleInconsistentException(InconsistentException exception, WebRequest request) {
+        return convertToResponseEntity(exception, HttpStatus.BAD_REQUEST, request);
+    }
+    
+    @ExceptionHandler
     public ResponseEntity<Object> handleNotFoundException(NotFoundException exception, WebRequest request) {
         return convertToResponseEntity(exception, HttpStatus.NOT_FOUND, request);
     }

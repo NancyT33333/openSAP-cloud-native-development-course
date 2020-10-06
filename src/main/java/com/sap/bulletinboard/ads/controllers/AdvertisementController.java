@@ -1,6 +1,6 @@
 package com.sap.bulletinboard.ads.controllers;
 
-import org.springframework.http.MediaType; //provides constants for content types
+//import org.springframework.http.MediaType; //provides constants for content types
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,18 +18,20 @@ import org.springframework.web.context.annotation.RequestScope;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
+//import java.util.HashMap;
+//import java.util.Map;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus; //enumeration for HTTP status codes
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+//import com.fasterxml.jackson.core.JsonProcessingException;
+//import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sap.bulletinboard.ads.models.Advertisement;
+import com.sap.bulletinboard.ads.models.AdvertisementRepository;
 
 @RestController
 @RequestScope
@@ -37,42 +39,61 @@ import com.sap.bulletinboard.ads.models.Advertisement;
 @RequestMapping(AdvertisementController.PATH)
 public class AdvertisementController {
     public static final String PATH = "/api/v1/ads";
-    private static final Map<Long, Advertisement> ads = new HashMap<>(); // temporary data storage, key represents the
+//    private static final Map<Long, Advertisement> ads = new HashMap<>(); // temporary data storage, key represents the
+    private AdvertisementRepository adRepository;
                                                                          // ID
-
+    @Inject
+    public AdvertisementController(AdvertisementRepository repository) {
+        this.adRepository = repository;
+    }
     @GetMapping
     public Iterable<Advertisement> advertisements() {
-        return AdvertisementController.ads.values();
+        return adRepository.findAll();
 
     }
 
     @GetMapping("/{id}")
     
     public Advertisement advertisementById(@PathVariable("id") @Min(0) Long id) {
-        if (!this.ads.containsKey(id)) {
+        if (!adRepository.exists(id) ) {
             throw new NotFoundException("No ad with this id");
         }
-        return this.ads.get(id);
+        return adRepository.findOne(id);
     }
 
     @PutMapping("/{id}")
-    public Advertisement advertisementPutById(@PathVariable("id") Long id, @Valid @RequestBody Advertisement body) {
+    public ResponseEntity<Advertisement> advertisementPutById(@PathVariable("id") Long id, @Valid @RequestBody Advertisement body,   
+            UriComponentsBuilder uriComponentsBuilder) throws URISyntaxException {
 
-        if (!this.ads.containsKey(id)) {
+        if (!adRepository.exists(id) ) {
             throw new NotFoundException("No ad with this id");
         }
-        this.ads.remove(id);
-        this.ads.put(id, body);
-        return this.ads.get(id);
+
+        if (body.getId()!= null && id != body.getId()) {
+            throw new InconsistentException("Ids don't match");
+        }
+        
+        Advertisement updAd = adRepository.findOne(id);
+        updAd.setTitle(body.getTitle());
+      
+      
+        updAd = adRepository.save(updAd);
+        
+        UriComponents uriComponents = uriComponentsBuilder.path(PATH + "/{id}").buildAndExpand(id);
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(new URI(uriComponents.getPath()));
+        return (ResponseEntity<Advertisement>) ResponseEntity.status(HttpStatus.OK).headers(headers)
+                .body(updAd);
     }
     
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public void advertisementDelById(@PathVariable("id") Long id) {
-        if (!this.ads.containsKey(id)) {
+        if(!adRepository.exists(id) ) {
             throw new NotFoundException("No ad with this id");
         }
-        this.ads.remove(id);
+        adRepository.delete(id);
 
     }
 
@@ -81,25 +102,28 @@ public class AdvertisementController {
     @DeleteMapping()
     public void advertisementDeleteGeneral() {
 
-        this.ads.clear();
+        adRepository.deleteAll();
     }
 
     /**
      * @RequestBody is bound to the method argument. HttpMessageConverter resolves method argument depending on the
-     *              content type.
+     *              content type. 
+     *              returns ResponseEntity with advertisement in the body, location header and HttpStatus.CREATED status 
+     *              code
      */
     @PostMapping
     public ResponseEntity<Advertisement> add(@Valid @RequestBody Advertisement advertisement,
-            UriComponentsBuilder uriComponentsBuilder) throws URISyntaxException {
-        long lng = this.ads.size() + 1;
+        UriComponentsBuilder uriComponentsBuilder) throws URISyntaxException {
+        Advertisement newAd = adRepository.save( advertisement);
+        long lng = newAd.getId();
         UriComponents uriComponents = uriComponentsBuilder.path(PATH + "/{id}").buildAndExpand(lng);
-        this.ads.put(lng, advertisement);
+      
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(new URI(uriComponents.getPath()));
 
         return (ResponseEntity<Advertisement>) ResponseEntity.status(HttpStatus.CREATED).headers(headers)
-                .body(advertisement);
-        // TODO return ResponseEntity with advertisement in the body, location header and HttpStatus.CREATED status code
+                .body(newAd);
+        
     }
 
 }

@@ -1,8 +1,10 @@
 package com.sap.bulletinboard.ads.controllers;
 
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
+//import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+
 import static org.springframework.http.MediaType.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -36,7 +38,7 @@ import net.minidev.json.JSONObject;
 @WebAppConfiguration
 //@formatter:off
 public class AdvertisementControllerTest {
-    
+       
     private static final String LOCATION = "Location";
     private static final String SOME_TITLE = "MyNewAdvertisement";
 
@@ -139,8 +141,10 @@ public class AdvertisementControllerTest {
     
     mockMvc.perform(buildDelete())
     .andExpect(status().is2xxSuccessful());
-   mockMvc.perform(buildGetRequest( ))
-      .andExpect(jsonPath("$.length()", is(0)));      
+    assertThat(mockMvc.perform(buildGetRequest( ))
+   .andReturn().getResponse().getContentLength(), is(0));
+   
+     // .andExpect(jsonPath("$.length()", is(0)));      
       
   }
   //  tests delete of specific item

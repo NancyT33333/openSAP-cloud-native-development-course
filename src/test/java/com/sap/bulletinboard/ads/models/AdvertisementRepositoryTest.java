@@ -75,9 +75,20 @@ public class AdvertisementRepositoryTest {
         entity = repo.save(entity); // persists entity and sets initial version
 
         entity.setTitle("entity instance 1");
-        Advertisement updatedEntity = repo.save(entity); // returns instance with updated version
+        repo.save(entity); // returns instance with updated version
 
         repo.save(entity); // tries to persist entity with outdated version
     }
 
+    @Test
+    public void shouldFindByTitle() {
+        Advertisement entity = new Advertisement();
+        String title = "Find me";
+
+        entity.setTitle(title);
+        repo.save(entity);
+        
+        Advertisement foundEntity = repo.findByTitle(title).get(0);
+        assertThat(foundEntity.getTitle(), is(title));
+    }
 }

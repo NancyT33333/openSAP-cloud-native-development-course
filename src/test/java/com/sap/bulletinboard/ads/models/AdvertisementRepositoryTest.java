@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -89,6 +90,21 @@ public class AdvertisementRepositoryTest {
         repo.save(entity);
         
         Advertisement foundEntity = repo.findByTitle(title).get(0);
+        assertThat(foundEntity.getTitle(), is(title));
+    }
+    
+    @Test
+    public void shouldFindByIdGE() {
+        Advertisement entity = new Advertisement();
+        String title = "Find me";
+
+        entity.setTitle(title);
+        
+        repo.save(entity);
+        Long lId = entity.getId();
+        List<Advertisement> foundCollection = repo.findByIdGreaterThanEqual(lId);
+        Advertisement foundEntity = foundCollection.get(0);
+        assertThat(foundCollection.size(), is(1));
         assertThat(foundEntity.getTitle(), is(title));
     }
 }

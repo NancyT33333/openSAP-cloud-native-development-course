@@ -29,6 +29,9 @@ import javax.validation.constraints.Min;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
@@ -39,6 +42,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 //import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sap.bulletinboard.ads.models.Advertisement;
 import com.sap.bulletinboard.ads.models.AdvertisementRepository;
+import com.sap.hcp.cf.logging.common.customfields.CustomField;
 
 @RestController
 @RequestScope
@@ -106,7 +110,7 @@ public class AdvertisementController {
     @GetMapping("/{id}")
     
     public Advertisement advertisementById(@PathVariable("id") @Min(0) Long id) {
-        
+        MDC.put("endpoind adressed", PATH + id); 
         logger.info("get request received for id {}", id);
         if (!adRepository.exists(id) ) {            
             NotFoundException notFoundException = new NotFoundException("No ad with id" + id);         
@@ -161,7 +165,8 @@ public class AdvertisementController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping()
     public void advertisementDeleteGeneral() {
-
+        this.logger.info("demonstration of custom fields, not part of message", CustomField.customField("potentially suspicious action", "delete all"));
+        this.logger.info("demonstration of custom fields, part of message: {}", CustomField.customField("potentially suspicious action", "delete all"));
         adRepository.deleteAll();
     }
 
@@ -174,13 +179,16 @@ public class AdvertisementController {
     @PostMapping
     public ResponseEntity<Advertisement> add(@Valid @RequestBody Advertisement advertisement,
         UriComponentsBuilder uriComponentsBuilder) throws URISyntaxException {
+        // создаём маркер technical 
+        Marker technicalMarker = MarkerFactory.getMarker("TECHNICAL");
         Advertisement newAd = adRepository.save( advertisement);
         long lng = newAd.getId();
         UriComponents uriComponents = uriComponentsBuilder.path(PATH + "/{id}").buildAndExpand(lng);
       
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(new URI(uriComponents.getPath()));
-
+        
+        logger.info(technicalMarker, "Created advertisement, version {}", newAd.getVersion());
         return (ResponseEntity<Advertisement>) ResponseEntity.status(HttpStatus.CREATED).headers(headers)
                 .body(newAd);
         

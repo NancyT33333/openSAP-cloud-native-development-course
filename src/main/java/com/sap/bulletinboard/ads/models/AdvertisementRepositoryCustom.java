@@ -10,4 +10,5 @@ public interface AdvertisementRepositoryCustom {
      * @return all entities sorted by the given options
      */
     List<Advertisement> findByTitle(String title);
+    List<Advertisement> findByIdGreaterThanEqual(Long id);
 }

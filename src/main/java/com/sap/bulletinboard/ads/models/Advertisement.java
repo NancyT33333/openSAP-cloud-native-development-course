@@ -76,6 +76,10 @@ public class Advertisement {
     
     public Timestamp getUpdatedAt() {        
         return this.updatedAt;
+    }
+    public Long getVersion() {
+        
+        return this.version;
     } 
 
 }

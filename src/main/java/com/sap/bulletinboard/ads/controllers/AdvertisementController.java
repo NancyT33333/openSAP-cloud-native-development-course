@@ -27,6 +27,8 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
@@ -50,16 +52,21 @@ public class AdvertisementController {
     public static final int DEFAULT_PAGE_SIZE = 20;
 //    private static final Map<Long, Advertisement> ads = new HashMap<>(); // temporary data storage, key represents the
     private AdvertisementRepository adRepository;
+    private Logger logger;  
+    
                                                                          // ID
     @Inject
     public AdvertisementController(AdvertisementRepository repository) {
         this.adRepository = repository;
+        Logger logger = LoggerFactory.getLogger(getClass());
+        this.logger = logger;
     }
     
     
     @GetMapping
     public ResponseEntity<AdvertisementList> advertisements() {
-        return advertisementsForPage(FIRST_PAGE_ID);
+       
+        return advertisementsForPage(FIRST_PAGE_ID);        
     }
     
     @GetMapping("/pages/{pageId}") 
@@ -99,9 +106,15 @@ public class AdvertisementController {
     @GetMapping("/{id}")
     
     public Advertisement advertisementById(@PathVariable("id") @Min(0) Long id) {
-        if (!adRepository.exists(id) ) {
-            throw new NotFoundException("No ad with this id");
+        
+        logger.info("get request received for id {}", id);
+        if (!adRepository.exists(id) ) {            
+            NotFoundException notFoundException = new NotFoundException("No ad with id" + id);         
+            logger.warn("request failed", notFoundException);
+            throw notFoundException;            
+            
         }
+        logger.info("found {}", adRepository.findOne(id).toString());
         return adRepository.findOne(id);
     }
 
@@ -135,7 +148,10 @@ public class AdvertisementController {
     @DeleteMapping("/{id}")
     public void advertisementDelById(@PathVariable("id") Long id) {
         if(!adRepository.exists(id) ) {
-            throw new NotFoundException("No ad with this id");
+            NotFoundException notFoundException = new NotFoundException("No ad with id" + id);         
+            logger.warn("request failed", notFoundException);
+            throw notFoundException;
+            
         }
         adRepository.delete(id);
 

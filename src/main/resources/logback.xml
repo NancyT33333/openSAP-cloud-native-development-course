@@ -15,7 +15,7 @@
         <appender-ref ref="${APPENDER:-STDOUT}"/>
     </root>
 
-    <logger name="com.sap.bulletinboard" level="${LOG_APP_LEVEL:-INFO}"/>
+    <logger name="com.sap.bulletinboard" level="${LOG_APP_LEVEL:-TRACE}"/>
 
     <!-- log request details provided by RequestLoggingFilter -->
     <logger name="com.sap.hcp.cf" level="${LOG_CF_LEVEL:-INFO}"/>

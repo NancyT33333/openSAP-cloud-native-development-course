@@ -25,6 +25,12 @@ public class Advertisement {
     @NotBlank
     public String title; 
     
+    @Override
+    public String toString() {
+        return "Advertisement [id=" + id + ", title=" + title + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt
+                + ", version=" + version + "]";
+    }
+
     public Timestamp createdAt;
     public Timestamp updatedAt;
     

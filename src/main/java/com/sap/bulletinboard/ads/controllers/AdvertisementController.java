@@ -42,6 +42,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 //import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sap.bulletinboard.ads.models.Advertisement;
 import com.sap.bulletinboard.ads.models.AdvertisementRepository;
+import com.sap.bulletinboard.ads.services.UserServiceClient;
 import com.sap.hcp.cf.logging.common.customfields.CustomField;
 
 @RestController
@@ -55,10 +56,13 @@ public class AdvertisementController {
     // allows server side optimization e.g. via caching
     public static final int DEFAULT_PAGE_SIZE = 20;
 //    private static final Map<Long, Advertisement> ads = new HashMap<>(); // temporary data storage, key represents the
+//    ID
     private AdvertisementRepository adRepository;
     private Logger logger;  
     
-                                                                         // ID
+    @Inject
+    private UserServiceClient userServiceClient;
+    
     @Inject
     public AdvertisementController(AdvertisementRepository repository) {
         this.adRepository = repository;
@@ -107,8 +111,7 @@ public class AdvertisementController {
         }
     }
 
-    @GetMapping("/{id}")
-    
+    @GetMapping("/{id}")    
     public Advertisement advertisementById(@PathVariable("id") @Min(0) Long id) {
         MDC.put("endpoind adressed", PATH + id); 
         logger.info("get request received for id {}", id);
@@ -154,8 +157,7 @@ public class AdvertisementController {
         if(!adRepository.exists(id) ) {
             NotFoundException notFoundException = new NotFoundException("No ad with id" + id);         
             logger.warn("request failed", notFoundException);
-            throw notFoundException;
-            
+            throw notFoundException;            
         }
         adRepository.delete(id);
 
@@ -178,19 +180,23 @@ public class AdvertisementController {
      */
     @PostMapping
     public ResponseEntity<Advertisement> add(@Valid @RequestBody Advertisement advertisement,
-        UriComponentsBuilder uriComponentsBuilder) throws URISyntaxException {
+        UriComponentsBuilder uriComponentsBuilder) throws URISyntaxException, NotPremiumUserException {
         // создаём маркер technical 
         Marker technicalMarker = MarkerFactory.getMarker("TECHNICAL");
-        Advertisement newAd = adRepository.save( advertisement);
-        long lng = newAd.getId();
-        UriComponents uriComponents = uriComponentsBuilder.path(PATH + "/{id}").buildAndExpand(lng);
-      
-        HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(new URI(uriComponents.getPath()));
-        
-        logger.info(technicalMarker, "Created advertisement, version {}", newAd.getVersion());
-        return (ResponseEntity<Advertisement>) ResponseEntity.status(HttpStatus.CREATED).headers(headers)
-                .body(newAd);
+        if (userServiceClient.isPremiumUser("42")) {
+            Advertisement newAd = adRepository.save( advertisement);
+            long lng = newAd.getId();
+            UriComponents uriComponents = uriComponentsBuilder.path(PATH + "/{id}").buildAndExpand(lng);        
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setLocation(new URI(uriComponents.getPath()));
+            
+            logger.info(technicalMarker, "Created advertisement, version {}", newAd.getVersion());
+            return (ResponseEntity<Advertisement>) ResponseEntity.status(HttpStatus.CREATED).headers(headers)
+                    .body(newAd);
+        }  else {
+            throw new NotPremiumUserException(null);
+        }
         
     }
 

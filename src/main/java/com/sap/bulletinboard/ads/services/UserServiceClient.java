@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
+import com.netflix.hystrix.exception.HystrixRuntimeException;
+
 @Component // defines a Spring Bean with name "userServiceClient"
 public class UserServiceClient {
     private static final String PATH = "api/v1.0/users";
@@ -29,15 +31,16 @@ public class UserServiceClient {
     public boolean isPremiumUser(String id) throws RuntimeException {
         String url = userServiceRoute + "/" + PATH + "/" + id;
         logger.info("sending request {}", url);
-        
+        boolean isPremiumUser = false;
         try {
-            ResponseEntity<User> responseEntity = restTemplate.getForEntity(url, User.class);
-            logger.info("received response, status code: {}", responseEntity.getStatusCode());
-            return responseEntity.getBody().premiumUser;
-        } catch(HttpStatusCodeException error) {
-            logger.error("received HTTP status code: {}", error.getStatusCode());
+
+            User user = new GetUserCommand(url, restTemplate).execute();
+            isPremiumUser = user.premiumUser;
+        } catch(HystrixRuntimeException error) {
+            logger.error("[HystrixError] " + error.getMessage());
             throw error;
         }
+        return isPremiumUser; 
     }
 
     public static class User {

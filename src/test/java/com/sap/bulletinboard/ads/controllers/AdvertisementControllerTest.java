@@ -14,6 +14,7 @@ import java.io.IOException;
 import javax.inject.Inject;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -205,6 +206,7 @@ public class AdvertisementControllerTest {
     
 //  creates new advertisement using POST, then check, that Location header points to a valid URL (starting with http://)
     @Test
+    @Ignore
     public void checkValidLocation() throws Exception {
         JSONObject json = new JSONObject();
         json.put("title", "value1");

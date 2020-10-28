@@ -27,6 +27,8 @@ public class GetUserCommand extends HystrixCommand<User> {
     // Hystrix uses a default timeout of 1000 ms, increase in case you run into problems in remote locations
     private static final int DEFAULT_TIMEOUT_MS = 1000;
 
+    private static final String HTTP_HEADER_CORRELATION_ID = "X-Correlation-ID";
+
     private String url;
     private RestTemplate restTemplate;
     private Logger logger;

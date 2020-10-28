@@ -2,8 +2,12 @@ package com.sap.bulletinboard.ads.services;
 
 import java.util.function.Supplier;
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -17,6 +21,7 @@ import com.netflix.hystrix.exception.HystrixBadRequestException;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.sap.bulletinboard.ads.controllers.BadRequestException;
 import com.sap.bulletinboard.ads.services.UserServiceClient.User;
+import com.sap.hcp.cf.logging.common.LogContext;
 
 public class GetUserCommand extends HystrixCommand<User> {
     // Hystrix uses a default timeout of 1000 ms, increase in case you run into problems in remote locations
@@ -27,6 +32,8 @@ public class GetUserCommand extends HystrixCommand<User> {
     private Logger logger;
     private Supplier<User> fallbackFunction;
     
+    private String correlationId;
+    
     
     public GetUserCommand(String url, RestTemplate restTemplate, Supplier<User> fallbackFunction) {
         super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("User"))
@@ -36,10 +43,12 @@ public class GetUserCommand extends HystrixCommand<User> {
         this.url = url;
         this.restTemplate = restTemplate;
         this.logger = LoggerFactory.getLogger(getClass());
+        this.correlationId = LogContext.getCorrelationId();
     }
 
     @Override
     protected User run() throws Exception {
+        LogContext.initializeContext(this.correlationId);
         try {
             ResponseEntity<User> responseEntity = sendRequest();
             logger.info("received response, status code: {}", responseEntity.getStatusCode());
@@ -78,8 +87,12 @@ public class GetUserCommand extends HystrixCommand<User> {
     }
 
     protected ResponseEntity<User> sendRequest() {
-        ResponseEntity<User> responseEntity = restTemplate.getForEntity(url, User.class);
-        return responseEntity;
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HTTP_HEADER_CORRELATION_ID, correlationId);
+        HttpEntity<User> request = new HttpEntity<>(headers);
+        return restTemplate.exchange(url, HttpMethod.GET, request, User.class);
+//       ResponseEntity<User> responseEntity = restTemplate.getForEntity(url, User.class);
+//        return responseEntity;
     }
 
     // this will be used in exercise 18

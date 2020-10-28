@@ -34,7 +34,7 @@ public class UserServiceClient {
         boolean isPremiumUser = false;
         try {
 
-            User user = new GetUserCommand(url, restTemplate).execute();
+            User user = new GetUserCommand(url, restTemplate, User::new).execute();
             isPremiumUser = user.premiumUser;
         } catch(HystrixRuntimeException error) {
             logger.error("[HystrixError] " + error.getMessage());

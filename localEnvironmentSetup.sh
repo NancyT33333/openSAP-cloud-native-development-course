@@ -3,7 +3,7 @@ echo "This script prepares the current shell's environment variables (not perman
 
 # Used for backing services like the PostgreSQL database
 export VCAP_APPLICATION={}
-export VCAP_SERVICES='{"postgresql-x64-12":[{"name":"test","label":"postgresql-x64-12","credentials":{"dbname":"postgres","hostname":"localhost","password":"postgres","port":"5432","uri":"postgres://postgres:postgres@localhost:5432/postgres","username":"postgres"},"tags":["relational","postgresql"],"plan":"free"}]}'
+export VCAP_SERVICES='{"rabbitmq-lite": [{"credentials": {"hostname": "127.0.0.1","password": "guest","uri": "amqp://guest:guest@127.0.0.1:5672","username": "guest"},"name": "rabbitmq-lite","label": "rabbitmq-lite","tags": ["rabbitmq33","rabbitmq","amqp"]}],"postgresql-x64-12":[{"name":"test","label":"postgresql-x64-12","credentials":{"dbname":"postgres","hostname":"localhost","password":"postgres","port":"5432","uri":"postgres://postgres:postgres@localhost:5432/postgres","username":"postgres"},"tags":["relational","postgresql"],"plan":"free"}]}'
 
 # Used for dependent service call
 export USER_ROUTE=https://opensapcp5userservice.cfapps.eu10.hana.ondemand.com

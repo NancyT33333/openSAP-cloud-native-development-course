@@ -38,10 +38,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus; //enumeration for HTTP status codes
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-//import com.fasterxml.jackson.core.JsonProcessingException;
-//import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sap.bulletinboard.ads.models.Advertisement;
 import com.sap.bulletinboard.ads.models.AdvertisementRepository;
+import com.sap.bulletinboard.ads.services.StatisticsServiceClient;
 import com.sap.bulletinboard.ads.services.UserServiceClient;
 import com.sap.hcp.cf.logging.common.customfields.CustomField;
 
@@ -60,14 +59,19 @@ public class AdvertisementController {
     private AdvertisementRepository adRepository;
     private Logger logger;  
     
-    @Inject
-    private UserServiceClient userServiceClient;
+    
+    private UserServiceClient userServiceClient;   
+    private StatisticsServiceClient statisticsServiceClient;
+
+
     
     @Inject
-    public AdvertisementController(AdvertisementRepository repository) {
+    public AdvertisementController(AdvertisementRepository repository, UserServiceClient userServiceClient,  StatisticsServiceClient statisticsServiceClient  ) {
         this.adRepository = repository;
         Logger logger = LoggerFactory.getLogger(getClass());
         this.logger = logger;
+        this.userServiceClient = userServiceClient;
+        this.statisticsServiceClient = statisticsServiceClient; 
     }
     
     
@@ -115,6 +119,7 @@ public class AdvertisementController {
     public Advertisement advertisementById(@PathVariable("id") @Min(0) Long id) {
         MDC.put("endpoind adressed", PATH + id); 
         logger.info("get request received for id {}", id);
+        statisticsServiceClient.advertisementIsShown(id);
         if (!adRepository.exists(id) ) {            
             NotFoundException notFoundException = new NotFoundException("No ad with id" + id);         
             logger.warn("request failed", notFoundException);

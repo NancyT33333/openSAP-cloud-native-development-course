@@ -37,6 +37,7 @@ import net.minidev.json.JSONObject;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { WebAppContextConfig.class })
 @WebAppConfiguration
+
 //@formatter:off
 public class AdvertisementControllerTest {
        

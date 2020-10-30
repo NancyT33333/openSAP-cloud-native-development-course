@@ -9,7 +9,7 @@ import static org.springframework.http.MediaType.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.io.IOException;
+//import java.io.IOException;
 
 import javax.inject.Inject;
 
@@ -262,9 +262,9 @@ public class AdvertisementControllerTest {
         return location.substring(location.lastIndexOf('/') + 1);
     }
 
-    private <T> T convertJsonContent(MockHttpServletResponse response, Class<T> clazz) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        String contentString = response.getContentAsString();
-        return objectMapper.readValue(contentString, clazz);
-    }
+//    private <T> T convertJsonContent(MockHttpServletResponse response, Class<T> clazz) throws IOException {
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        String contentString = response.getContentAsString();
+//        return objectMapper.readValue(contentString, clazz);
+//    }
 }

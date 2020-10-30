@@ -18,14 +18,12 @@ import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.exception.HystrixBadRequestException;
-import com.netflix.hystrix.exception.HystrixRuntimeException;
-import com.sap.bulletinboard.ads.controllers.BadRequestException;
 import com.sap.bulletinboard.ads.services.UserServiceClient.User;
 import com.sap.hcp.cf.logging.common.LogContext;
 
 public class GetUserCommand extends HystrixCommand<User> {
     // Hystrix uses a default timeout of 1000 ms, increase in case you run into problems in remote locations
-    private static final int DEFAULT_TIMEOUT_MS = 1000;
+//    private static final int DEFAULT_TIMEOUT_MS = 1000;
 
     private static final String HTTP_HEADER_CORRELATION_ID = "X-Correlation-ID";
 

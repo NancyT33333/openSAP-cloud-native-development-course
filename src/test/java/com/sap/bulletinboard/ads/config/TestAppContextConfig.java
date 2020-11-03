@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
-import com.sap.bulletinboard.ads.services.UserServiceClient;
+//import com.sap.bulletinboard.ads.services.UserServiceClient;
 
 /**
  * Configures the test application context. Triggers the search and load of classes annotated
@@ -17,14 +17,14 @@ import com.sap.bulletinboard.ads.services.UserServiceClient;
 @Configuration
 public class TestAppContextConfig {
 
-    @Bean
-    @Primary
-    UserServiceClient userServiceClient() {
-        // return a UserServiceClient mock that just returns "true" for isPremiumUser, without issuing a network request
-        UserServiceClient userServiceClient = Mockito.mock(UserServiceClient.class);
-        Mockito.when(userServiceClient.isPremiumUser(Mockito.anyString())).thenReturn(true);
-        return userServiceClient;
-    }
+//    @Bean
+//    @Primary
+//    UserServiceClient userServiceClient() {
+//        // return a UserServiceClient mock that just returns "true" for isPremiumUser, without issuing a network request
+//        UserServiceClient userServiceClient = Mockito.mock(UserServiceClient.class);
+//        Mockito.when(userServiceClient.isPremiumUser(Mockito.anyString())).thenReturn(true);
+//        return userServiceClient;
+//    }
 
     @Bean
     static PropertySourcesPlaceholderConfigurer placeholderConfigurer() {

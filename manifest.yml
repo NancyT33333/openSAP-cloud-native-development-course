@@ -1,6 +1,7 @@
 ---
 applications:
-- name: bulletinboard-ads0192837
+- name: bulletinboard-ads012345
+  host: bulletinboard-ads012345
   health-check-type: http
   health-check-http-endpoint: /health
   memory: 1024M
@@ -15,3 +16,20 @@ applications:
       USER_ROUTE: 'https://opensapcp5userservice.cfapps.eu10.hana.ondemand.com'
   services:
   - applogs-bulletinboard
+- name: approuter
+  host: approuter-012345
+  path: src/main/approuter
+  buildpack: https://github.com/cloudfoundry/nodejs-buildpack.git
+  memory: 128M
+  env:
+    XSAPPNAME: bulletinboard-012345
+    TENANT_HOST_PATTERN: "^(.*)-approuter-012345.cfapps.eu10.hana.ondemand.com"
+    destinations: >
+      [
+        {"name":"ads-destination", 
+         "url":"https://bulletinboard-ads012345.cfapps.eu10.hana.ondemand.com",
+         "forwardAuthToken": true}
+      ]
+  services:
+    - applogs-bulletinboard
+    - uaa-bulletinboard

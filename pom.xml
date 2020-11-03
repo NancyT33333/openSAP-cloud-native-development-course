@@ -182,7 +182,7 @@
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<version>1.4.184</version>
-			<scope>test</scope>
+			<scope>runtime</scope>
 		</dependency>
 		<!-- Apache HTTP Client (closeable, configurable) -->
 		<dependency>

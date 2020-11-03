@@ -40,8 +40,8 @@ import org.springframework.http.HttpStatus; //enumeration for HTTP status codes
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sap.bulletinboard.ads.models.Advertisement;
 import com.sap.bulletinboard.ads.models.AdvertisementRepository;
-import com.sap.bulletinboard.ads.services.StatisticsServiceClient;
-import com.sap.bulletinboard.ads.services.UserServiceClient;
+//import com.sap.bulletinboard.ads.services.StatisticsServiceClient;
+//import com.sap.bulletinboard.ads.services.UserServiceClient;
 import com.sap.hcp.cf.logging.common.customfields.CustomField;
 
 @RestController
@@ -60,18 +60,19 @@ public class AdvertisementController {
     private Logger logger;  
     
     
-    private UserServiceClient userServiceClient;   
-    private StatisticsServiceClient statisticsServiceClient;
+//    private UserServiceClient userServiceClient;   
+//    private StatisticsServiceClient statisticsServiceClient;
 
 
-    
+//     StatisticsServiceClient statisticsServiceClient 
+//    UserServiceClient userServiceClient 
     @Inject
-    public AdvertisementController(AdvertisementRepository repository, UserServiceClient userServiceClient,  StatisticsServiceClient statisticsServiceClient  ) {
+    public AdvertisementController(AdvertisementRepository repository) {
         this.adRepository = repository;
         Logger logger = LoggerFactory.getLogger(getClass());
         this.logger = logger;
-        this.userServiceClient = userServiceClient;
-        this.statisticsServiceClient = statisticsServiceClient; 
+//        this.userServiceClient = userServiceClient;
+//        this.statisticsServiceClient = statisticsServiceClient; 
     }
     
     
@@ -119,7 +120,7 @@ public class AdvertisementController {
     public Advertisement advertisementById(@PathVariable("id") @Min(0) Long id) {
         MDC.put("endpoind adressed", PATH + id); 
         logger.info("get request received for id {}", id);
-        statisticsServiceClient.advertisementIsShown(id);
+//        statisticsServiceClient.advertisementIsShown(id);
         if (!adRepository.exists(id) ) {            
             NotFoundException notFoundException = new NotFoundException("No ad with id" + id);         
             logger.warn("request failed", notFoundException);
@@ -188,7 +189,7 @@ public class AdvertisementController {
         UriComponentsBuilder uriComponentsBuilder) throws URISyntaxException, NotPremiumUserException {
         // создаём маркер technical 
         Marker technicalMarker = MarkerFactory.getMarker("TECHNICAL");
-        if (userServiceClient.isPremiumUser("42")) {
+//        if (userServiceClient.isPremiumUser("42")) {
             Advertisement newAd = adRepository.save( advertisement);
             long lng = newAd.getId();
             UriComponents uriComponents = uriComponentsBuilder.path(PATH + "/{id}").buildAndExpand(lng);        
@@ -199,9 +200,9 @@ public class AdvertisementController {
             logger.info(technicalMarker, "Created advertisement, version {}", newAd.getVersion());
             return (ResponseEntity<Advertisement>) ResponseEntity.status(HttpStatus.CREATED).headers(headers)
                     .body(newAd);
-        }  else {
-            throw new NotPremiumUserException(null);
-        }
+//        }  else {
+//            throw new NotPremiumUserException(null);
+//        }
         
     }
 

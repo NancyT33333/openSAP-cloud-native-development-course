@@ -9,6 +9,7 @@ import org.springframework.validation.beanvalidation.MethodValidationPostProcess
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 /**
+ * 
  * Activates Web MVC and its @Controller classes via RequestMappingHandlerMapping. Defines Spring beans for the
  * application context and triggers via @ComponentScan the search and the registration of Beans. Beans are detected
  * within @Configuration, @Component and @Controller annotated classes.

@@ -6,6 +6,7 @@ import static org.junit.Assert.assertThat;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
@@ -46,8 +47,10 @@ public class AdvertisementRepositoryTest {
         Thread.sleep(5); //Better: mock time!
 
         entity = repo.save(entity);
-        Timestamp timestampAfterUpdate = entity.getCreatedAt();
-        assertThat(timestampAfterUpdate, is(timestampAfterCreation));
+        Optional<Advertisement> entityAfterUpdate = repo.findById(entity.getId());
+        assertThat(entityAfterUpdate.isPresent(), is(true));
+        assertThat(entityAfterUpdate.get().getCreatedAt(), is(timestampAfterCreation));
+     
     }
     
     @Test

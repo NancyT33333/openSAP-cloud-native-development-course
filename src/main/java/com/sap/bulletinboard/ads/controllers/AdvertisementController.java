@@ -85,7 +85,7 @@ public class AdvertisementController {
     @GetMapping("/pages/{pageId}") 
     public ResponseEntity<AdvertisementList> advertisementsForPage(@PathVariable("pageId") int pageId) {
 
-        Page<Advertisement> page = adRepository.findAll(new PageRequest(pageId, DEFAULT_PAGE_SIZE));
+        Page<Advertisement> page = adRepository.findAll(PageRequest.of(pageId, DEFAULT_PAGE_SIZE));
 
         return new ResponseEntity<AdvertisementList>(new AdvertisementList(page.getContent()),
                 buildLinkHeader(page, PATH_PAGES), HttpStatus.OK);
@@ -121,21 +121,21 @@ public class AdvertisementController {
         MDC.put("endpoind adressed", PATH + id); 
         logger.info("get request received for id {}", id);
 //        statisticsServiceClient.advertisementIsShown(id);
-        if (!adRepository.exists(id) ) {            
+        if (!adRepository.existsById(id) ) {            
             NotFoundException notFoundException = new NotFoundException("No ad with id" + id);         
             logger.warn("request failed", notFoundException);
             throw notFoundException;            
             
         }
-        logger.info("found {}", adRepository.findOne(id).toString());
-        return adRepository.findOne(id);
+        logger.info("found {}", adRepository.findById(id).get().toString());
+        return adRepository.findById(id).get();
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Advertisement> advertisementPutById(@PathVariable("id") Long id, @Valid @RequestBody Advertisement body,   
             UriComponentsBuilder uriComponentsBuilder) throws URISyntaxException {
 
-        if (!adRepository.exists(id) ) {
+        if (!adRepository.existsById(id) ) {
             throw new NotFoundException("No ad with this id");
         }
 
@@ -143,7 +143,7 @@ public class AdvertisementController {
             throw new InconsistentException("Ids don't match");
         }
         
-        Advertisement updAd = adRepository.findOne(id);
+        Advertisement updAd = adRepository.findById(id).get();
         updAd.setTitle(body.getTitle());
       
       
@@ -160,12 +160,12 @@ public class AdvertisementController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public void advertisementDelById(@PathVariable("id") Long id) {
-        if(!adRepository.exists(id) ) {
+        if(!adRepository.existsById(id) ) {
             NotFoundException notFoundException = new NotFoundException("No ad with id" + id);         
             logger.warn("request failed", notFoundException);
             throw notFoundException;            
         }
-        adRepository.delete(id);
+        adRepository.deleteById(id);
 
     }
 

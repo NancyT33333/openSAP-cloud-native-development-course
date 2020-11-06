@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.orm.jpa.JpaOptimisticLockingFailureException;
@@ -92,19 +93,6 @@ public class AdvertisementRepositoryTest {
         Advertisement foundEntity = repo.findByTitle(title).get(0);
         assertThat(foundEntity.getTitle(), is(title));
     }
-    
-    @Test
-    public void shouldFindByIdGE() {
-        Advertisement entity = new Advertisement();
-        String title = "Find me";
-
-        entity.setTitle(title);
-        
-        repo.save(entity);
-        Long lId = entity.getId();
-        List<Advertisement> foundCollection = repo.findByIdGreaterThanEqual(lId);
-        Advertisement foundEntity = foundCollection.get(0);
-        assertThat(foundCollection.size(), is(1));
-        assertThat(foundEntity.getTitle(), is(title));
-    }
+   
+   
 }

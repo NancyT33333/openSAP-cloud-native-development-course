@@ -1,24 +1,30 @@
 package com.sap.bulletinboard.ads.controllers;
 
-import static org.hamcrest.Matchers.*;
-//import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertThat;
 
+import static com.sap.bulletinboard.ads.config.WebSecurityConfig.DISPLAY_SCOPE_LOCAL;
+import static com.sap.bulletinboard.ads.config.WebSecurityConfig.UPDATE_SCOPE_LOCAL;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+import static org.springframework.http.HttpHeaders.*;
 import static org.springframework.http.MediaType.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-//import java.io.IOException;
 
 import javax.inject.Inject;
+import javax.servlet.Filter;
 
+import com.sap.cloud.security.config.Service;
+import com.sap.cloud.security.test.SecurityTestRule;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,14 +36,21 @@ import org.springframework.web.context.WebApplicationContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sap.bulletinboard.ads.config.WebAppContextConfig;
+import com.sap.bulletinboard.ads.config.WebSecurityConfig;
 import com.sap.bulletinboard.ads.models.Advertisement;
+import com.sap.cloud.security.config.Service;
+import com.sap.cloud.security.test.JwtGenerator;
+import com.sap.cloud.security.test.SecurityTestRule;
 
 import net.minidev.json.JSONObject;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { WebAppContextConfig.class })
 @WebAppConfiguration
-
+@TestPropertySource(properties = {
+        "xsuaa.uaadomain=" + SecurityTestRule.DEFAULT_DOMAIN,
+        "xsuaa.xsappname=" + SecurityTestRule.DEFAULT_APP_ID,
+        "xsuaa.clientid=" + SecurityTestRule.DEFAULT_CLIENT_ID })
 //@formatter:off
 public class AdvertisementControllerTest {
        
@@ -49,11 +62,25 @@ public class AdvertisementControllerTest {
 
     private MockMvc mockMvc;
 
+    @Inject 
+    private Filter springSecurityFilterChain;
+    private String jwt;
+    
+    @ClassRule
+    public static SecurityTestRule securityTestRule = SecurityTestRule.getInstance(Service.XSUAA)
+            .setKeys("/publicKey.txt", "/privateKey.txt"); //      
+
+
+
     @Before
     public void setUp() throws Exception {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-    }
-
+            mockMvc = MockMvcBuilders.webAppContextSetup(context).addFilters(springSecurityFilterChain).build();
+            jwt = "Bearer " + securityTestRule.getPreconfiguredJwtGenerator()
+            .withLocalScopes(DISPLAY_SCOPE_LOCAL, UPDATE_SCOPE_LOCAL)
+            .createToken()
+            .getTokenValue();
+    }   
+    
     @Test
     public void create() throws Exception {
         mockMvc.perform(buildPostRequest(SOME_TITLE))
@@ -119,7 +146,11 @@ public class AdvertisementControllerTest {
         JSONObject json = new JSONObject();
         json.put("title", "value1");
         
-        MvcResult postres = mockMvc.perform(post(AdvertisementController.PATH).content(toJson(json)).contentType(APPLICATION_JSON_UTF8)).andReturn();
+        MvcResult postres = mockMvc.perform(post(AdvertisementController.PATH)
+                .header(AUTHORIZATION, jwt)
+                .content(toJson(json))
+                .contentType(APPLICATION_JSON_UTF8))
+                .andReturn();
       
         String newEntryLocation = postres.getResponse().getHeader("Location");
         newEntryLocation = getIdFromLocation(newEntryLocation);
@@ -137,9 +168,11 @@ public class AdvertisementControllerTest {
     JSONObject json = new JSONObject();
     json.put("title", "value1");
     
-        mockMvc.perform(post(AdvertisementController.PATH).content(toJson(json))
-                                    .contentType(APPLICATION_JSON_UTF8))
-                                    .andExpect(status().is2xxSuccessful());
+        mockMvc.perform(post(AdvertisementController.PATH)
+                .header(AUTHORIZATION, jwt)
+                .content(toJson(json))
+                .contentType(APPLICATION_JSON_UTF8))
+                .andExpect(status().is2xxSuccessful());
     
     mockMvc.perform(buildDelete())
     .andExpect(status().is2xxSuccessful());
@@ -193,16 +226,13 @@ public class AdvertisementControllerTest {
 //  creates new advertisement using POST, then retrieve it using GET {/id}
     @Test
     public void readById() throws Exception {
-        JSONObject json = new JSONObject();
-        json.put("title", "value1");
-        
-        MvcResult postres = mockMvc.perform(post(AdvertisementController.PATH).content(toJson(json)).contentType(APPLICATION_JSON_UTF8)).andReturn();
-      
-        String newEntryLocation = postres.getResponse().getHeader("Location");
-        newEntryLocation = getIdFromLocation(newEntryLocation);
-        
-        mockMvc.perform(get(AdvertisementController.PATH + "/" + newEntryLocation)).andExpect(status().is2xxSuccessful());      
+       
+        String id = performPostAndGetId();
 
+        mockMvc.perform(buildGetByIdRequest(id))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.title", is(SOME_TITLE)));
     }
     
 //  creates new advertisement using POST, then check, that Location header points to a valid URL (starting with http://)
@@ -212,7 +242,7 @@ public class AdvertisementControllerTest {
         JSONObject json = new JSONObject();
         json.put("title", "value1");
         
-        MvcResult postres = mockMvc.perform(post(AdvertisementController.PATH).content(toJson(json)).contentType(APPLICATION_JSON_UTF8)).andReturn();
+        MvcResult postres = mockMvc.perform(post(AdvertisementController.PATH).header(AUTHORIZATION, jwt).content(toJson(json)).contentType(APPLICATION_JSON_UTF8)).andReturn();
       
         String newEntryLocation = postres.getResponse().getHeader("Location");
 //        newEntryLocation = getIdFromLocation(newEntryLocation);
@@ -220,7 +250,7 @@ public class AdvertisementControllerTest {
             fail("not absolute Location Header");
         }
         
-        mockMvc.perform(get(newEntryLocation)).andExpect(status().is2xxSuccessful());      
+        mockMvc.perform(get(newEntryLocation).header(AUTHORIZATION, jwt)).andExpect(status().is2xxSuccessful());      
     }
     
     private MockHttpServletRequestBuilder buildPostRequest(String adsTitle) throws Exception {
@@ -228,30 +258,38 @@ public class AdvertisementControllerTest {
         advertisement.setTitle(adsTitle);
 
         // post the advertisement as a JSON entity in the request body
-        return post(AdvertisementController.PATH).content(toJson(advertisement)).contentType(APPLICATION_JSON_UTF8);
+        return post(AdvertisementController.PATH).header(AUTHORIZATION, jwt).content(toJson(advertisement)).contentType(APPLICATION_JSON_UTF8);
     }
     
     private MockHttpServletRequestBuilder buildGetRequest() throws Exception {
-        return get(AdvertisementController.PATH).contentType(APPLICATION_JSON_UTF8);
+        return get(AdvertisementController.PATH).header(AUTHORIZATION, jwt).contentType(APPLICATION_JSON_UTF8);
     }
     
     private MockHttpServletRequestBuilder buildPutRequest() throws Exception {
-        return put(AdvertisementController.PATH).content("{}").contentType(APPLICATION_JSON_UTF8);
+        return put(AdvertisementController.PATH).header(AUTHORIZATION, jwt).content("{}").contentType(APPLICATION_JSON_UTF8);
+    }
+
+   private String performPostAndGetId() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(buildPostRequest(SOME_TITLE))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse();
+
+        return getIdFromLocation(response.getHeader(LOCATION));
     }
     
     private MockHttpServletRequestBuilder buildPutByIdRequest(String id, Advertisement ad) throws Exception {      
-        return put(AdvertisementController.PATH + "/" + id).content(toJson(ad)).contentType(APPLICATION_JSON_UTF8);
+        return put(AdvertisementController.PATH + "/" + id).header(AUTHORIZATION, jwt).content(toJson(ad)).contentType(APPLICATION_JSON_UTF8);
     }
     
     private MockHttpServletRequestBuilder buildDeleteByIdRequest(String id) throws Exception {      
-        return delete(AdvertisementController.PATH + "/" + id);
+        return delete(AdvertisementController.PATH + "/" + id).header(AUTHORIZATION, jwt);
     }
     private MockHttpServletRequestBuilder buildDelete() throws Exception {      
-        return delete(AdvertisementController.PATH );
+        return delete(AdvertisementController.PATH ).header(AUTHORIZATION, jwt);
     }
     
     private MockHttpServletRequestBuilder buildGetByIdRequest(String sId) throws Exception {
-        return get(AdvertisementController.PATH + "/" + sId ).contentType(APPLICATION_JSON_UTF8);
+        return get(AdvertisementController.PATH + "/" + sId ).header(AUTHORIZATION, jwt).contentType(APPLICATION_JSON_UTF8);
     }
     
     private String toJson(Object object) throws JsonProcessingException {

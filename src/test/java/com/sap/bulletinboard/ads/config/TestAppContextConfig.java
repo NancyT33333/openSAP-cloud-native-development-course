@@ -2,10 +2,8 @@ package com.sap.bulletinboard.ads.config;
 
 import java.util.Properties;
 
-import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 //import com.sap.bulletinboard.ads.services.UserServiceClient;

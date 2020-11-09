@@ -16,6 +16,7 @@ applications:
       USER_ROUTE: 'https://opensapcp5userservice.cfapps.eu10.hana.ondemand.com'
   services:
   - applogs-bulletinboard
+  - uaa-bulletinboard
 - name: approuter
   host: approuter-012345
   path: src/main/approuter

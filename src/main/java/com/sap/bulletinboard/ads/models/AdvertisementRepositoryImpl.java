@@ -9,7 +9,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 
-
 public class AdvertisementRepositoryImpl implements AdvertisementRepositoryCustom {
     
     @PersistenceContext
@@ -34,11 +33,7 @@ public class AdvertisementRepositoryImpl implements AdvertisementRepositoryCusto
         return query2.getResultList();
     }
 
-    @Override
-    public  List<Advertisement> findByIdGreaterThanEqual(Long id) {
-        return null;
-       
-    }
+    
      
 
 }
